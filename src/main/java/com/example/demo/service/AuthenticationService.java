@@ -40,12 +40,20 @@ public class AuthenticationService {
      * @return an {@link AuthenticationResponse} containing the JWT
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+        } catch (org.springframework.security.authentication.CredentialsExpiredException e) {
+            // This is the expected exception for a user with a temporary password.
+            // We can ignore it and proceed to generate a token, which will
+            // contain the 'temporaryPassword=true' claim, forcing a password change.
+        }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        final String jwt = jwtUtil.generateToken(userDetails);
+        final User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
+        final String jwt = jwtUtil.generateToken(userDetails, user);
 
         return new AuthenticationResponse(jwt);
     }
@@ -73,7 +81,7 @@ public class AuthenticationService {
         user.setPhone2(request.getPhone2());
         user.setMobile(request.getMobile());
         user.setEmail(request.getEmail());
-        user.setEnabled(false); // New users are disabled by default
+        user.setEnabled(true); // New users are disabled by default
         user.setTemporaryPassword(true); // New users have temporary password by default
         return userRepository.save(user);
     }

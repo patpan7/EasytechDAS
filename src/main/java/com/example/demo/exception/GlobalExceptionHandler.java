@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDisabledException(DisabledException ex) {
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("message", "Your account is disabled. Please contact support.");
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // You can add more exception handlers here for other custom exceptions or general exceptions

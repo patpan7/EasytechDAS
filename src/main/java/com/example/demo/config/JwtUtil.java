@@ -50,8 +50,9 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, com.example.demo.model.User user) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
         // Add user roles to claims
         claims.put("authorities", userDetails.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())

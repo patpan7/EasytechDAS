@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ResetPasswordRequest;
 import com.example.demo.dto.PasswordChangeRequest;
 import com.example.demo.dto.UserDto;
 import com.example.demo.dto.UserSelectionDto;
@@ -51,12 +52,11 @@ public class UserController {
 
     @PutMapping("/{id}/reset-password")
     @PreAuthorize("hasRole('SUPERVISOR')") // Only supervisor can reset passwords
-    public ResponseEntity<Void> resetPasswordBySupervisor(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String temporaryPassword = body.get("temporaryPassword");
-        if (temporaryPassword == null || temporaryPassword.isEmpty()) {
+    public ResponseEntity<Void> resetPasswordBySupervisor(@PathVariable Long id, @RequestBody ResetPasswordRequest request) {
+        if (request.getTemporaryPassword() == null || request.getTemporaryPassword().isEmpty()) {
             throw new IllegalArgumentException("Temporary password is required.");
         }
-        userService.resetPasswordBySupervisor(id, temporaryPassword);
+        userService.resetPasswordBySupervisor(id, request.getTemporaryPassword());
         return ResponseEntity.ok().build();
     }
 }

@@ -1,11 +1,10 @@
 -- This file will be executed automatically by Spring Boot to populate the database.
 
 -- Insert sample users (password is 'password' for both, encrypted with BCrypt)
--- You should register these users via the frontend registration page for proper password hashing.
--- These are just for initial setup if needed.
-INSERT INTO users (id, username, password, role) VALUES
-(1, 'supervisor', '$2a$10$e.g.a.new.hash.for.password.here.ThisIsALongStringOfCharacters', 'ROLE_SUPERVISOR'),
-(2, 'partner1', '$2a$10$e.g.a.new.hash.for.password.here.ThisIsALongStringOfCharacters', 'ROLE_PARTNER');
+-- The password for both users is 'password'
+INSERT INTO users (id, username, password, role, enabled, temporary_password) VALUES
+(1, 'supervisor', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1c.sidKZefWSu', 'ROLE_SUPERVISOR', true, false),
+(2, 'partner1', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1c.sidKZefWSu', 'ROLE_PARTNER', true, false);
 
 -- Insert sample customers for the users
 -- Customer A is associated with supervisor (user_id 1)

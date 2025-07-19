@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 /**
  * Represents a Device entity in the database.
- * Each device is associated with a customer.
+ * A device can be associated with a customer or directly with a user (partner).
  */
 @Entity
 @Table(name = "devices")
@@ -20,8 +20,12 @@ public class Device {
     private String status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id") // Made nullable
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // New field for direct assignment to a user (partner)
+    private User user;
 
     // Getters and Setters
 
@@ -55,5 +59,13 @@ public class Device {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

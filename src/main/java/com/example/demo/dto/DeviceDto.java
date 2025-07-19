@@ -9,6 +9,8 @@ public class DeviceDto {
     private String serialNumber;
     private String status;
     private Long customerId;
+    private Long userId; // New field for the user (partner) ID
+    private String assignedToUsername; // New field for the username of the assigned partner
 
     // Getters and Setters
 
@@ -42,5 +44,21 @@ public class DeviceDto {
 
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getAssignedToUsername() {
+        return assignedToUsername;
+    }
+
+    public void setAssignedToUsername(String assignedToUsername) {
+        this.assignedToUsername = assignedToUsername;
     }
 }

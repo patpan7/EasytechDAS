@@ -19,4 +19,12 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
      * @return a list of devices for the given user
      */
     List<Device> findByCustomerUserId(Long userId);
+
+    /**
+     * Finds all devices directly assigned to a specific user (partner).
+     *
+     * @param userId the ID of the user
+     * @return a list of devices for the given user
+     */
+    List<Device> findByUserId(Long userId);
 }
