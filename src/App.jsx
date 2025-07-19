@@ -9,6 +9,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
 
 import Users from './pages/Users'; // Import the new Users component
+import Tasks from './pages/Tasks'; // Import the new Tasks component
 
 import ChangePassword from './pages/ChangePassword'; // Import the new ChangePassword component
 
@@ -52,6 +53,15 @@ function App() {
               <PrivateRoute>
                 <Navbar />
                 <Users />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <PrivateRoute>
+                <Navbar />
+                <Tasks />
               </PrivateRoute>
             }
           />

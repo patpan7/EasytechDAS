@@ -36,6 +36,7 @@ const Navbar = () => {
               <div className="flex space-x-4">
                 <NavLink to="/customers" className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}>Customers</NavLink>
                 <NavLink to="/devices" className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}>Devices</NavLink>
+                <NavLink to="/tasks" className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}>Tasks</NavLink>
                 {userRole === 'ROLE_SUPERVISOR' && (
                   <NavLink to="/users" className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}>Users</NavLink>
                 )}
@@ -79,6 +80,7 @@ const Navbar = () => {
           <div className="px-2 pt-2 pb-3 space-y-1">
             <NavLink to="/customers" className={({ isActive }) => `block ${linkClasses} ${isActive ? activeLinkClasses : ''}`}>Customers</NavLink>
             <NavLink to="/devices" className={({ isActive }) => `block ${linkClasses} ${isActive ? activeLinkClasses : ''}`}>Devices</NavLink>
+            <NavLink to="/tasks" className={({ isActive }) => `block ${linkClasses} ${isActive ? activeLinkClasses : ''}`}>Tasks</NavLink>
             {userRole === 'ROLE_SUPERVISOR' && (
               <NavLink to="/users" className={({ isActive }) => `block ${linkClasses} ${isActive ? activeLinkClasses : ''}`}>Users</NavLink>
             )}

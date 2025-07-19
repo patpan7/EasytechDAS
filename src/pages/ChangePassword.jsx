@@ -34,7 +34,7 @@ const ChangePassword = () => {
     try {
       const token = localStorage.getItem('jwtToken');
       const decodedToken = jwtDecode(token);
-      const userId = decodedToken.sub; // Assuming 'sub' contains the user ID
+      const userId = decodedToken.userId; // Use userId from token
 
       await axios.put(`http://192.168.1.8:8080/api/users/${userId}/password`, {
         currentPassword,

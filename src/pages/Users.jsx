@@ -33,6 +33,28 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
+  const handleResetPassword = async (userId) => {
+    const temporaryPassword = prompt('Please enter a new temporary password for the user:');
+    if (temporaryPassword) {
+      try {
+        const token = localStorage.getItem('jwtToken');
+        await axios.put(`http://192.168.1.8:8080/api/users/${userId}/reset-password`, 
+        { temporaryPassword }, // The body needs to be an object
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        });
+        alert('Password has been reset successfully.');
+        fetchUsers(); // Refresh users to show updated status if any
+      } catch (err) {
+        setError('Failed to reset password.');
+        console.error(err);
+      }
+    }
+  };
+
   const handleSave = () => {
     fetchUsers();
   };
@@ -66,12 +88,18 @@ const Users = () => {
                       {user.enabled ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button
                       onClick={() => handleEditClick(user)}
                       className="text-indigo-600 hover:text-indigo-900 transition duration-150"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={() => handleResetPassword(user.id)}
+                      className="text-red-600 hover:text-red-900 transition duration-150"
+                    >
+                      Reset Password
                     </button>
                   </td>
                 </tr>
