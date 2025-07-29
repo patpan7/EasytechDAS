@@ -30,12 +30,14 @@ const Register = () => {
     setLookupLoading(true);
     setMessage('');
     try {
+      // No token needed for this public endpoint
+      // No token needed for this public endpoint
       const token = localStorage.getItem('jwtToken');
       const response = await axios.get(`http://192.168.1.8:8080/api/vat-lookup/${afm}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      });;
       const data = response.data;
       if (data) {
         setEponimia(data.eponimia || '');
@@ -73,8 +75,8 @@ const Register = () => {
         mobile,
         email,
       });
-      setMessage('Registration successful! You can now log in.');
-      setTimeout(() => navigate('/login'), 2000); // Redirect after 2 seconds
+      setMessage('Registration successful! Your account is pending activation by a supervisor.');
+      setTimeout(() => navigate('/login'), 3000); // Redirect after 3 seconds
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed. Username might already exist.');
       console.error(err);

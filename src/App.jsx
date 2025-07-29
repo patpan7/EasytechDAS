@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 
 import Users from './pages/Users'; // Import the new Users component
 import Tasks from './pages/Tasks'; // Import the new Tasks component
+import CustomerDevices from './pages/CustomerDevices'; // Import the new CustomerDevices component
 
 import ChangePassword from './pages/ChangePassword'; // Import the new ChangePassword component
 
@@ -35,6 +36,15 @@ function App() {
               <PrivateRoute>
                 <Navbar />
                 <Customers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/customers/:customerId/devices"
+            element={
+              <PrivateRoute>
+                <Navbar />
+                <CustomerDevices />
               </PrivateRoute>
             }
           />

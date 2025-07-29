@@ -15,7 +15,7 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
   const [phone2, setPhone2] = useState(customer ? customer.phone2 : '');
   const [mobile, setMobile] = useState(customer ? customer.mobile : '');
   const [email, setEmail] = useState(customer ? customer.email : '');
-  const [partnerId, setPartnerId] = useState(customer ? customer.partnerId : '');
+  const [userId, setUserId] = useState(customer ? customer.userId : '');
   const [partners, setPartners] = useState([]);
   const [error, setError] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -32,8 +32,6 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
               Authorization: `Bearer ${token}`,
             },
           });
-          console.log('Fetched partners:', response.data);
-          console.log('Fetched partners:', response.data);
           setPartners(response.data);
         } catch (err) {
           setError('Failed to fetch partners.');
@@ -59,7 +57,7 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
       setPhone2(customer.phone2 || '');
       setMobile(customer.mobile || '');
       setEmail(customer.email || '');
-      setPartnerId(customer.partnerId);
+      setUserId(customer.userId);
     } else {
       setStatus('Active');
       setEponimia('');
@@ -74,7 +72,7 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
       setPhone2('');
       setMobile('');
       setEmail('');
-      setPartnerId('');
+      setUserId('');
     }
     setError(''); // Clear error on modal open/customer change
   }, [customer, isOpen]);
@@ -129,7 +127,7 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
       phone2,
       mobile,
       email,
-      partnerId: isSupervisor && partnerId ? Number(partnerId) : undefined, // Only send partnerId if supervisor and selected
+      userId: isSupervisor && userId ? Number(userId) : undefined,
     };
 
     try {
@@ -316,8 +314,8 @@ const CustomerFormModal = ({ isOpen, onClose, customer, onSave, userRole }) => {
                 <select
                   id="partner"
                   className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={partnerId}
-                  onChange={(e) => setPartnerId(e.target.value)}
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
                 >
                   <option value="">-- Select Partner --</option>
                   {partners.map(p => (

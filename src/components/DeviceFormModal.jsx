@@ -6,8 +6,10 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
   const [status, setStatus] = useState(device ? device.status : 'Active');
   const [customerId, setCustomerId] = useState(device ? device.customerId : '');
   const [assignedToUserId, setAssignedToUserId] = useState(device ? device.userId : '');
-  const [customers, setCustomers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]); // Store all customers for supervisor filtering
+  const [customers, setCustomers] = useState([]); // Filtered customers for the dropdown
   const [partners, setPartners] = useState([]);
+  const [selectedFilterPartnerId, setSelectedFilterPartnerId] = useState(''); // For filtering customers by partner
   const [error, setError] = useState('');
 
   const isSupervisor = userRole === 'ROLE_SUPERVISOR';
@@ -17,20 +19,32 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
       const fetchCustomersAndPartners = async () => {
         try {
           const token = localStorage.getItem('jwtToken');
-          const customerResponse = await axios.get('http://192.168.1.8:8080/api/devices/customers', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setCustomers(customerResponse.data);
 
           if (isSupervisor) {
+            // Fetch all customers for supervisor
+            const allCustomersResponse = await axios.get('http://192.168.1.8:8080/api/customers', {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            setAllCustomers(allCustomersResponse.data);
+            setCustomers(allCustomersResponse.data); // Initially show all customers
+
+            // Fetch all partners for supervisor
             const partnerResponse = await axios.get('http://192.168.1.8:8080/api/users/partners', {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             });
             setPartners(partnerResponse.data);
+          } else {
+            // For partners, fetch only their customers
+            const customerResponse = await axios.get('http://192.168.1.8:8080/api/devices/customers', {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            setCustomers(customerResponse.data);
           }
         } catch (err) {
           setError('Failed to fetch data.');
@@ -56,6 +70,17 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
     setError('');
   }, [device, isOpen]);
 
+  useEffect(() => {
+    if (isSupervisor && allCustomers.length > 0) {
+      if (selectedFilterPartnerId) {
+        const filtered = allCustomers.filter(c => c.userId === Number(selectedFilterPartnerId));
+        setCustomers(filtered);
+      } else {
+        setCustomers(allCustomers);
+      }
+    }
+  }, [selectedFilterPartnerId, allCustomers, isSupervisor]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -72,14 +97,15 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
     }
 
     // Basic validation: ensure either customerId or assignedToUserId is set
-    if (!deviceData.customerId && !deviceData.assignedToUserId) {
-      setError('A device must be assigned to either a customer or a user.');
-      return;
-    }
-    if (deviceData.customerId && deviceData.assignedToUserId) {
-      setError('A device cannot be assigned to both a customer and a user.');
-      return;
-    }
+    // Removed validation to allow unassigned devices
+    // if (!deviceData.customerId && !deviceData.assignedToUserId) {
+    //   setError('A device must be assigned to either a customer or a user.');
+    //   return;
+    // }
+    // if (deviceData.customerId && deviceData.assignedToUserId) {
+    //   setError('A device cannot be assigned to both a customer and a user.');
+    //   return;
+    // }
 
     try {
       const token = localStorage.getItem('jwtToken');
@@ -139,12 +165,27 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
           {isSupervisor ? (
             <>
               <div>
+                <label htmlFor="filterPartner" className="block text-gray-700 text-sm font-bold mb-2">Filter by Partner:</label>
+                <select
+                  id="filterPartner"
+                  className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={selectedFilterPartnerId}
+                  onChange={(e) => setSelectedFilterPartnerId(e.target.value)}
+                >
+                  <option value="">-- Show All Partners --</option>
+                  {partners.map(p => (
+                    <option key={p.id} value={p.id}>{p.username}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label htmlFor="customer" className="block text-gray-700 text-sm font-bold mb-2">Assign to Customer:</label>
                 <select
                   id="customer"
                   className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={customerId}
                   onChange={(e) => { setCustomerId(e.target.value); setAssignedToUserId(''); }}
+                  disabled={!!assignedToUserId}
                 >
                   <option value="">-- Select Customer --</option>
                   {customers.map(c => (
@@ -159,6 +200,7 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
                   className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={assignedToUserId}
                   onChange={(e) => { setAssignedToUserId(e.target.value); setCustomerId(''); }}
+                  disabled={!!customerId}
                 >
                   <option value="">-- Select Partner --</option>
                   {partners.map(p => (
@@ -175,7 +217,6 @@ const DeviceFormModal = ({ isOpen, onClose, device, onSave, userRole }) => {
                 className="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
-                required // Partner must assign to a customer
               >
                 <option value="">-- Select Customer --</option>
                 {customers.map(c => (

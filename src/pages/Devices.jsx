@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode'; // Import jwt-decode
 import DeviceFormModal from '../components/DeviceFormModal';
+import AssignToPartnerModal from '../components/AssignToPartnerModal'; // New import
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
@@ -14,6 +15,8 @@ const Devices = () => {
   const [selectedDeviceToAssign, setSelectedDeviceToAssign] = useState(null);
   const [customersForAssignment, setCustomersForAssignment] = useState([]);
   const [selectedCustomerForAssignment, setSelectedCustomerForAssignment] = useState('');
+  const [isAssignToPartnerModalOpen, setIsAssignToPartnerModalOpen] = useState(false); // New state
+  const [partnersForAssignment, setPartnersForAssignment] = useState([]); // New state
 
   const fetchDevices = async () => {
     try {
@@ -94,23 +97,38 @@ const Devices = () => {
     }
   };
 
-  const handleAssignToPartner = async (deviceId) => {
-    const partnerId = prompt('Enter the ID of the partner to assign this device to:');
-    if (partnerId) {
-      try {
-        const token = localStorage.getItem('jwtToken');
-        await axios.put(`http://192.168.1.8:8080/api/devices/${deviceId}/assign-to-partner/${partnerId}`, {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        fetchDevices();
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to assign device to partner.');
-        console.error(err);
-      }
+  const handleAssignToPartnerClick = async (device) => { // New function
+    setSelectedDeviceToAssign(device);
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await axios.get('http://192.168.1.8:8080/api/users/partners', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPartnersForAssignment(response.data);
+      setIsAssignToPartnerModalOpen(true);
+    } catch (err) {
+      setError('Failed to fetch partners for assignment.');
+      console.error(err);
+    }
+  };
+
+  const handleAssignToPartnerSubmit = async (deviceId, partnerId) => { // Modified function
+    try {
+      const token = localStorage.getItem('jwtToken');
+      await axios.put(`http://192.168.1.8:8080/api/devices/${deviceId}/assign-to-partner/${partnerId}`, {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setIsAssignToPartnerModalOpen(false);
+      fetchDevices();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to assign device to partner.');
+      console.error(err);
     }
   };
 
@@ -164,9 +182,9 @@ const Devices = () => {
                         Assign to Customer
                       </button>
                     )}
-                    {userRole === 'ROLE_SUPERVISOR' && !device.customerId && !device.userId && (
+                    {userRole === 'ROLE_SUPERVISOR' && !device.customerId && (!device.userId || device.userId === decodedToken.userId) && (
                       <button
-                        onClick={() => handleAssignToPartner(device.id)}
+                        onClick={() => handleAssignToPartnerClick(device)} // Changed to new function
                         className="text-purple-600 hover:text-purple-900 transition duration-150"
                       >
                         Assign to Partner
@@ -235,6 +253,14 @@ const Devices = () => {
             </div>
           </div>
         )}
+
+        <AssignToPartnerModal // New modal
+          isOpen={isAssignToPartnerModalOpen}
+          onClose={() => setIsAssignToPartnerModalOpen(false)}
+          device={selectedDeviceToAssign}
+          onAssign={handleAssignToPartnerSubmit}
+          partners={partnersForAssignment}
+        />
       </div>
     </div>
   );
