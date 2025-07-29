@@ -21,6 +21,7 @@ public class CustomerDto {
     private String mobile;
     private String email;
     private Long userId;
+    private String partnerUsername;
 
     // Getters and Setters
 
@@ -150,5 +151,13 @@ public class CustomerDto {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getPartnerUsername() {
+        return partnerUsername;
+    }
+
+    public void setPartnerUsername(String partnerUsername) {
+        this.partnerUsername = partnerUsername;
     }
 }

@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/vat-lookup/**").permitAll() // Allow VAT lookup for registration
+                        .requestMatchers(HttpMethod.POST, "/api/devices").authenticated() // Allow authenticated users to create devices
                         .requestMatchers("/api/tasks/**").authenticated() // Secure task endpoints
                         .anyRequest().authenticated()
                 )

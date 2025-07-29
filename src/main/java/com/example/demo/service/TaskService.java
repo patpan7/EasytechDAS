@@ -7,6 +7,7 @@ import com.example.demo.model.Task;
 import com.example.demo.model.User;
 import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,16 +65,16 @@ public class TaskService {
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<Task> tasks;
+        Set<Task> uniqueTasks = new LinkedHashSet<>();
         if ("ROLE_SUPERVISOR".equals(currentUser.getRole())) {
-            tasks = taskRepository.findAll();
+            uniqueTasks.addAll(taskRepository.findAll(Sort.by(Sort.Direction.ASC, "id")));
         } else if (currentUser.getRole().startsWith("ROLE_PARTNER")) {
-            tasks = taskRepository.findByCreatedById(currentUser.getId());
+            uniqueTasks.addAll(taskRepository.findByCreatedById(currentUser.getId(), Sort.by(Sort.Direction.ASC, "id")));
         } else {
             throw new AccessDeniedException("Access denied");
         }
 
-        return tasks.stream()
+        return uniqueTasks.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

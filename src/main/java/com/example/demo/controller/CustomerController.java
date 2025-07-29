@@ -51,7 +51,7 @@ public class CustomerController {
     /**
      * Updates an existing customer.
      *
-     * @param id the ID of the customer to update
+     * @param id      the ID of the customer to update
      * @param request the request containing updated customer details
      * @return a {@link ResponseEntity} containing the updated customer DTO
      */
@@ -60,5 +60,31 @@ public class CustomerController {
     public ResponseEntity<CustomerDto> updateCustomer(@PathVariable Long id, @RequestBody CustomerUpdateRequest request) {
         CustomerDto updatedCustomer = customerService.updateCustomer(id, request);
         return ResponseEntity.ok(updatedCustomer);
+    }
+
+    /**
+     * Gets a single customer by ID.
+     *
+     * @param id the ID of the customer
+     * @return a {@link ResponseEntity} containing the {@link CustomerDto}
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'PARTNER')")
+    public ResponseEntity<CustomerDto> getCustomerById(@PathVariable Long id) {
+        CustomerDto customer = customerService.getCustomerById(id);
+        return ResponseEntity.ok(customer);
+    }
+
+    /**
+     * Gets a list of customers for a specific partner.
+     * Only accessible by SUPERVISOR.
+     *
+     * @param partnerId the ID of the partner
+     * @return a {@link ResponseEntity} containing the list of {@link CustomerDto}s
+     */
+    @GetMapping("/by-partner/{partnerId}")
+    @PreAuthorize("hasRole('SUPERVISOR')")
+    public ResponseEntity<List<CustomerDto>> getCustomersByPartnerId(@PathVariable Long partnerId) {
+        return ResponseEntity.ok(customerService.getCustomersByPartnerId(partnerId));
     }
 }

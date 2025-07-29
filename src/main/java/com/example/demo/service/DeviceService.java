@@ -8,6 +8,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.DeviceRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,18 +47,18 @@ public class DeviceService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<Device> devices = new ArrayList<>();
+        Set<Device> uniqueDevices = new LinkedHashSet<>(); // Changed to LinkedHashSet
         if ("ROLE_SUPERVISOR".equals(user.getRole())) {
-            devices = deviceRepository.findAll();
+            uniqueDevices.addAll(deviceRepository.findAll(Sort.by(Sort.Direction.ASC, "id")));
         } else if (user.getRole().startsWith("ROLE_PARTNER")) {
             // Partners see devices assigned to their customers AND devices assigned directly to them
-            devices.addAll(deviceRepository.findByCustomerUserId(user.getId()));
-            devices.addAll(deviceRepository.findByUserId(user.getId()));
+            uniqueDevices.addAll(deviceRepository.findByCustomerUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id")));
+            uniqueDevices.addAll(deviceRepository.findByUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id")));
         } else {
             throw new AccessDeniedException("Access denied");
         }
 
-        return devices.stream()
+        return uniqueDevices.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -93,8 +96,11 @@ public class DeviceService {
             User assignedPartner = userRepository.findById(request.getAssignedToUserId())
                     .orElseThrow(() -> new EntityNotFoundException("Assigned partner not found."));
             device.setUser(assignedPartner);
-        } else {
-            throw new IllegalArgumentException("Device must be assigned to either a customer or a user.");
+        } else { // If no customer or assigned user is specified, assign to the current user (stock)
+            if (!currentUser.getRole().startsWith("ROLE_SUPERVISOR") && !currentUser.getRole().startsWith("ROLE_PARTNER")) {
+                throw new AccessDeniedException("Only supervisors or partners can create unassigned devices.");
+            }
+            device.setUser(currentUser);
         }
 
         Device savedDevice = deviceRepository.save(device);
@@ -179,7 +185,7 @@ public class DeviceService {
         if ("ROLE_SUPERVISOR".equals(currentUser.getRole())) {
             customers = customerRepository.findAll();
         } else if (currentUser.getRole().startsWith("ROLE_PARTNER")) {
-            customers = customerRepository.findByUserId(currentUser.getId());
+            customers = customerRepository.findByUserId(currentUser.getId(),Sort.by(Sort.Direction.ASC, "id"));
         } else {
             throw new AccessDeniedException("Access denied");
         }
@@ -192,6 +198,31 @@ public class DeviceService {
                     dto.setEponimia(c.getEponimia());
                     return dto;
                 })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets a list of devices for a specific customer, based on the current user's role.
+     *
+     * @param customerId the ID of the customer
+     * @return a list of {@link DeviceDto}s for the given customer
+     */
+    public List<DeviceDto> getDevicesByCustomerId(Long customerId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        // Supervisor can view devices of any customer
+        // Partner can only view devices of their own customers
+        if (currentUser.getRole().startsWith("ROLE_PARTNER") && !customer.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to view devices for this customer.");
+        }
+
+        return deviceRepository.findByCustomerId(customerId, Sort.by(Sort.Direction.ASC, "id")).stream()
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 

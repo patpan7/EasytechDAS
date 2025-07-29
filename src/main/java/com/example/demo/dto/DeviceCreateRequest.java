@@ -1,7 +1,6 @@
 package com.example.demo.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.AssertTrue;
 
 public class DeviceCreateRequest {
 
@@ -46,10 +45,5 @@ public class DeviceCreateRequest {
 
     public void setAssignedToUserId(Long assignedToUserId) {
         this.assignedToUserId = assignedToUserId;
-    }
-
-    @AssertTrue(message = "A device must be assigned to either a customer or a user, but not both.")
-    private boolean isValidAssignment() {
-        return (customerId != null && assignedToUserId == null) || (customerId == null && assignedToUserId != null);
     }
 }

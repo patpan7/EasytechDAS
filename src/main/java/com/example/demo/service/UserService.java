@@ -6,6 +6,7 @@ import com.example.demo.dto.UserSelectionDto;
 import com.example.demo.dto.UserUpdateRequest;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +26,14 @@ public class UserService {
     }
 
     public List<UserSelectionDto> findPartners() {
-        return userRepository.findAll().stream()
+        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream()
                 .filter(user -> user.getRole().startsWith("ROLE_PARTNER"))
                 .map(user -> new UserSelectionDto(user.getId(), user.getUsername()))
                 .collect(Collectors.toList());
     }
 
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -98,6 +99,17 @@ public class UserService {
         dto.setRole(user.getRole());
         dto.setEnabled(user.isEnabled());
         dto.setEponimia(user.getEponimia());
+        dto.setTitle(user.getTitle());
+        dto.setAfm(user.getAfm());
+        dto.setProfession(user.getProfession());
+        dto.setAddress(user.getAddress());
+        dto.setCity(user.getCity());
+        dto.setZipCode(user.getZipCode());
+        dto.setDoy(user.getDoy());
+        dto.setPhone1(user.getPhone1());
+        dto.setPhone2(user.getPhone2());
+        dto.setMobile(user.getMobile());
+        dto.setEmail(user.getEmail());
         return dto;
     }
 }

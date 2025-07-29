@@ -20,7 +20,6 @@ public class VatLookupController {
     }
 
     @GetMapping("/{afm}")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'PARTNER')")
     public ResponseEntity<VatLookupResponse> lookupAfm(@PathVariable String afm) {
         VatLookupResponse response = aadeVatLookupService.lookupAfm(afm);
         if (response != null) {

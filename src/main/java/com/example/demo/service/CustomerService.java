@@ -7,6 +7,7 @@ import com.example.demo.model.Customer;
 import com.example.demo.model.User;
 import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -40,16 +43,16 @@ public class CustomerService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<Customer> customers;
+        Set<Customer> uniqueCustomers = new LinkedHashSet<>();
         if ("ROLE_SUPERVISOR".equals(user.getRole())) {
-            customers = customerRepository.findAll();
+            uniqueCustomers.addAll(customerRepository.findAll(Sort.by(Sort.Direction.ASC, "id")));
         } else if (user.getRole().startsWith("ROLE_PARTNER")) {
-            customers = customerRepository.findByUserId(user.getId());
+            uniqueCustomers.addAll(customerRepository.findByUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id")));
         } else {
             throw new AccessDeniedException("Access denied");
         }
 
-        return customers.stream()
+        return uniqueCustomers.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -177,6 +180,50 @@ public class CustomerService {
         dto.setMobile(customer.getMobile());
         dto.setEmail(customer.getEmail());
         dto.setUserId(customer.getUser().getId());
+        dto.setPartnerUsername(customer.getUser().getUsername());
         return dto;
+    }
+
+    /**
+     * Gets a single customer by ID.
+     *
+     * @param id the ID of the customer
+     * @return the {@link CustomerDto} for the given ID
+     */
+    public CustomerDto getCustomerById(Long id) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        // Partners can only view their own customers
+        if (currentUser.getRole().startsWith("ROLE_PARTNER") && !customer.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to view this customer.");
+        }
+
+        return convertToDto(customer);
+    }
+
+    /**
+     * Gets a list of customers for a specific partner.
+     * Only accessible by SUPERVISOR.
+     *
+     * @param partnerId the ID of the partner
+     * @return a list of {@link CustomerDto}s for the given partner
+     */
+    public List<CustomerDto> getCustomersByPartnerId(Long partnerId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!"ROLE_SUPERVISOR".equals(currentUser.getRole())) {
+            throw new AccessDeniedException("Only supervisors can view customers by partner.");
+        }
+
+        return customerRepository.findByUserId(partnerId, Sort.by(Sort.Direction.ASC, "id")).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 }

@@ -81,8 +81,8 @@ public class AuthenticationService {
         user.setPhone2(request.getPhone2());
         user.setMobile(request.getMobile());
         user.setEmail(request.getEmail());
-        user.setEnabled(true); // New users are disabled by default
-        user.setTemporaryPassword(true); // New users have temporary password by default
+        user.setEnabled(false); // New users are disabled by default
+        user.setTemporaryPassword(false); // Password is not temporary, user must be enabled by supervisor
         return userRepository.save(user);
     }
 }

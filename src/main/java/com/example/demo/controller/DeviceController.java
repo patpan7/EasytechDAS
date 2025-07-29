@@ -85,4 +85,16 @@ public class DeviceController {
     public ResponseEntity<List<com.example.demo.dto.CustomerDto>> getCustomersForCurrentUser() {
         return ResponseEntity.ok(deviceService.getCustomersForCurrentUser());
     }
+
+    /**
+     * Gets a list of devices for a specific customer.
+     *
+     * @param customerId the ID of the customer
+     * @return a {@link ResponseEntity} containing the list of {@link DeviceDto}s
+     */
+    @GetMapping("/customer/{customerId}")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'PARTNER')")
+    public ResponseEntity<List<DeviceDto>> getDevicesByCustomerId(@PathVariable Long customerId) {
+        return ResponseEntity.ok(deviceService.getDevicesByCustomerId(customerId));
+    }
 }
